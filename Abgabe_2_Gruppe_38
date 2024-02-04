@@ -1,1 +1,263 @@
 
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ggthemes")
+library(ggthemes)
+#install.packages("crayon")
+library(crayon)
+#Datensatz einlesen
+data <- read.csv(
+  file = "Bikeshare_data_with_NAs.csv", # Pfad zur .csv-Datei
+  header = TRUE,         # die Datei hat eine Kopfzeile
+  sep = ",",             # die Zellen sind durch Kommata getrennt
+  dec = "."              # das Zeichen für Dezimalstellen
+)
+
+#Aufbau des Datensatzes
+dim(data)
+
+#Klasse des Datensatzes
+class(data)
+
+#Überprüfung ob NAs vorhanden sind
+anyNA(data)
+
+#NAs entfernen
+data <- data[complete.cases(data), ]
+
+#Daten nach unserer Station filtern und abspeichern
+data_unsere_Station <- subset(data, station == "18th & M St NW")
+
+#erneute Überprüfung von NAs
+anyNA(data_unsere_Station)
+
+#suchen nach ungültigen Werten in Wind_speed
+range(data_unsere_Station$wind_speed)
+
+#da wir in Aufgabe 4 mit der Windgeschwindigkeit arbeiten müssen wir die
+#ungültigen Werte entfernen
+
+#finden von ungültigen Werten. Windgeschwindigkeit kann nicht negativ sein
+which(data_unsere_Station$wind_speed < 0)
+
+#ungültige Daten definieren
+id <- which(data_unsere_Station$wind_speed < 0)
+
+#bereinigten Datensatz erstellen
+data_unsere_Station_bereinigt <- data_unsere_Station[-id,]
+
+#testen ob noch negative Werte vorhanden sind
+range(data_unsere_Station_bereinigt$wind_speed)
+
+
+
+# Aufgabe 4
+#  install.packages("ggplot2")
+library(ggplot2)
+#  install.packages("dplyr")
+library(dplyr)
+#  install.packages("ggthemes")
+library(ggthemes)
+#install.packages("gridExtra")
+library(gridExtra)
+#install.packages("plotly")
+library(plotly)
+
+# Beispiel Datenrahmen mit einem Datum im Format "y-m-d"
+data_unsere_Station_bereinigt_Datum <- data.frame(
+  date = c("2023-01-15", "2023-02-20", "2023-03-25", "2023-04-30")
+)
+
+
+#4.1
+
+# Temperatur
+
+Grafik_Temperatur <- ggplot(data_unsere_Station_bereinigt,
+                            aes(x=data_unsere_Station_bereinigt$mean_temperature,y = data_unsere_Station_bereinigt$count)) +
+  geom_point(size = 3, shape = 16, col = "#8856a7", alpha = 1) +
+  labs (x="Temeratur in F°",y="Anzahl gemieteter Fahrräder") +
+  ggtitle("Zusammenhang zwischen Anzahl gemieteter Fahrräder und Temperatur") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+        legend.background = element_rect(fill = "white"))
+
+# Niederschlagsmenge
+
+Grafik_Niederschlag <- ggplot(data_unsere_Station_bereinigt,
+                              aes(x=data_unsere_Station_bereinigt$precipitation,y = data_unsere_Station_bereinigt$count)) +
+  geom_point(size = 3, shape = 16, col = "#8856a7", alpha = 1) +
+  labs (x="Niederschlagsmenge",y="Anzahl gemieteter Fahrräder") +
+  ggtitle("Zusammenhang zwischen Anzahl gemieteter Fahrräder und Windgeschwindigkeit") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+        legend.background = element_rect(fill = "white"))
+
+# Wingeschwindigkeit
+
+Grafik_Windgeschwindigkeit <- ggplot(data_unsere_Station_bereinigt,
+                                     aes(x=data_unsere_Station_bereinigt$wind_speed,y = data_unsere_Station_bereinigt$count)) +
+  geom_point(size = 3, shape = 16, col = "#8856a7", alpha = 1) +
+  labs (x="Windgeschwindigkeit in mph",y="Anzahl gemieteter Fahrräder") +
+  ggtitle("Zusammenhang zwischen Anzahl gemieteter Fahrräder und Windgeschwindigkeit") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+        legend.background = element_rect(fill = "white"))
+
+
+
+
+
+# Jahresverlauf
+
+Grafik_Jahresverlauf <- ggplot(data_unsere_Station_bereinigt,
+                              aes(x=data_unsere_Station_bereinigt$date,y = data_unsere_Station_bereinigt$count)) +
+  geom_point(size = 3, shape = 16, col = "#8856a7", alpha = 1) +
+  labs (x="Jahresverlauf",y="Anzahl gemieteter Fahrräder") +
+  ggtitle("Zusammenhang zwischen Anzahl gemieteter Fahrräder und dem Jahresverlauf") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+        legend.background = element_rect(fill = "white"))
+
+
+
+
+
+
+# Zusammenführen der Grafiken
+grid.arrange(Grafik_Temperatur, Grafik_Niederschlag, Grafik_Windgeschwindigkeit, Grafik_Jahresverlauf)
+
+
+
+
+##Aufgabe 4.2
+# Daten für Tage mit Regen
+data_regen <- subset(data_unsere_Station_bereinigt, precipitation > 0)
+
+# Daten für Tage ohne Regen
+data_kein_regen <- subset(data_unsere_Station_bereinigt, precipitation == 0)
+
+#Grafik Temperatur mit Regen
+
+Grafik_Temperatur_mit_Regen <- ggplot(data_regen,
+                            aes(x=data_regen$mean_temperature,y = data_regen$count)) +
+  geom_point(size = 3, shape = 16, col = "#8856a7", alpha = 1) +
+  labs (x="Temeratur in F°",y="Anzahl gemieteter Fahrräder") +
+  ggtitle("Zusammenhang zwischen Anzahl gemieteter Fahrräder und Temperatur") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 15, hjust = 0.5),
+        legend.background = element_rect(fill = "white"))
+
+
+#Grafik Temperatur mit Regen
+
+Grafik_Temperatur_ohne_Regen <- ggplot(data_kein_regen,
+                                      aes(x=data_kein_regen$mean_temperature,y = data_kein_regen$count)) +
+  geom_point(size = 3, shape = 16, col = "#8856a7", alpha = 1) +
+  labs (x="Temeratur in F°",y="Anzahl gemieteter Fahrräder") +
+  ggtitle("Zusammenhang zwischen Anzahl gemieteter Fahrräder und Temperatur") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", size = 15, hjust = 0.5),
+        legend.background = element_rect(fill = "white"))
+
+
+#Zusammenfügen der beiden Grafiken
+grid.arrange(Grafik_Temperatur_mit_Regen, Grafik_Temperatur_ohne_Regen)
+
+
+
+##Aufgabe 4.3
+
+#Säulendiagramm 4 stück in beziehung zu jahresverlauf tipp 
+
+# Histogramm für die Anzahl ausgeliehener Fahrräder
+Grafik_Anzahl_ausgeliehender_Fahrräder_4.3 <- ggplot(data_unsere_Station_bereinigt, aes(x = count)) +
+  geom_histogram(fill = "#8856a7", color = "black", bins = 20) +
+  labs(x = "Anzahl ausgeliehener Fahrräder", y = "Häufigkeit") +
+  ggtitle("Verteilung der Anzahl ausgeliehener Fahrräder")
+
+
+
+
+
+
+
+
+##Aufgabe 4.4
+
+#Kerndichteschätzer Grafik
+
+# Funktion zur Ableitung der Jahreszeit aus dem Datum
+get_jahreszeit <- function(datum) {
+  monat <- as.POSIXlt(datum)$mon + 1  # Monat extrahieren (1-basiert)
+  if (monat %in% c(3, 4, 5)) {
+    return("Frühling")
+  } else if (monat %in% c(6, 7, 8)) {
+    return("Sommer")
+  } else if (monat %in% c(9, 10, 11)) {
+    return("Herbst")
+  } else {
+    return("Winter")
+  }
+}
+
+# Jahreszeit für jedes Datum im Datensatz ableiten
+data_unsere_Station_bereinigt$jahreszeit <- sapply(data_unsere_Station_bereinigt$date, get_jahreszeit)
+
+# Überlagernde Kerndichteschätzer für die Verteilung der Anzahl ausgeliehener Fahrräder nach Jahreszeiten
+Grafik_Jahreszeiten_KDS <- ggplot(data_unsere_Station_bereinigt, aes(x = count, fill = jahreszeit)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Anzahl ausgeliehener Fahrräder", y = "Dichte") +
+  ggtitle("Verteilung der Anzahl ausgeliehener Fahrräder nach Jahreszeiten") +
+  scale_fill_manual(values = c("Frühling" = "#FFA500", "Sommer" = "#008000", "Herbst" = "#FFA07A", "Winter" = "#87CEEB")) +
+  theme_minimal()
+
+# Anzeigen der Grafik
+print(Grafik_Jahreszeiten_KDS)
+
+
+
+
+
+
+
+
+
+##Aufgabe 4.5 
+#install.packages("plotly")
+library(plotly)
+
+# 3D-Scatterplot erstellen
+scatterplot_3d <- plot_ly(
+  data_unsere_Station_bereinigt,
+  x = ~mean_temperature,
+  y = ~wind_speed,
+  z = ~count,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(
+    color = ~count,  # Farbskala
+    colorscale = "Viridis",  # Farbskala wählen
+    opacity = 0.7,
+    size = 3   # größe der Punkte im Scatterplot
+  ),
+  text = paste("Temperatur: ", data_unsere_Station_bereinigt$mean_temperature, "<br>",
+               "Windgeschwindigkeit: ", data_unsere_Station_bereinigt$wind_speed, "<br>",
+               "Anzahl ausgeliehener Fahrräder: ", data_unsere_Station_bereinigt$count)
+  ## Informationen hinzufügen, die beim Darüberfahren mit der Maus angezeigt werden
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "Temperatur in F°"),
+      yaxis = list(title = "Windgeschwindigkeit in mph"),
+      zaxis = list(title = "Anzahl ausgeliehener Fahrräder")
+    ),
+    title = "3D Scatterplot"
+  )
+
+# Grafik anzeigen
+scatterplot_3d
+
+
